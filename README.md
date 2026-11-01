@@ -1,126 +1,142 @@
 # BizScopeAI
 
-BizScopeAI is a local business-investigation assistant. Gemma handles the
-conversation and investigation state, Qwen structures requests for new
-evidence, and registered Python analytics provide reproducible numerical
-results.
+### A conversational business analyst that investigates data with evidence.
 
-## Local deployment
+BizScopeAI helps users explore business questions through a guided investigation. It frames possible explanations, decides when new numerical evidence is needed, runs registered analytics, and uses the results to inform the conversation. Visualizations are generated from the same analysis results shown in the response.
 
-This setup is for one trusted workstation. The application does not yet have
-user authentication or tenant-level data isolation; keep both servers bound to
-`127.0.0.1`. Do not expose them to a company network or the public internet.
+> **Project status:** Local, single-user student project prototype. Not intended for public or shared network deployment.
 
-### Requirements
+## What it does
 
+- **Investigates conversationally:** Ask an open-ended business question and explore plausible hypotheses before running calculations.
+- **Chooses when evidence is needed:** Follow-up questions can use saved evidence; new analytical requests are routed to an available analysis.
+- **Keeps arithmetic reproducible:** Python analytics calculate metrics, rankings, and comparisons. The language models explain the results rather than serve as the source of numerical truth.
+- **Updates the investigation:** New results can inform hypothesis status and the next useful question.
+- **Shows relevant charts:** Plotly charts are generated from analysis outputs and rendered in the browser interface.
+- **Works with uploaded CSVs:** The data pipeline profiles datasets and maps common business fields to supported analyses.
+
+## How it works
+
+```mermaid
+flowchart LR
+    U[Business question] --> G[Gemma conversation and investigation]
+    G --> D{Is new evidence needed?}
+    D -->|No| C[Use saved evidence and context]
+    D -->|Yes| Q[Qwen structures analysis request]
+    Q --> P[Registered Python analytics]
+    P --> S[Persist result and update hypotheses]
+    C --> R[Grounded response]
+    S --> R
+    P --> V[Relevant Plotly visualization]
+    V --> UI[Browser interface]
+    R --> UI
+```
+
+Gemma (`gemma3:4b`) handles conversational investigation and interpretation. Qwen (`qwen3:4b`) helps structure requests when new evidence is required. Registered Python functions produce the measured results; the models do not calculate the reported figures.
+
+## Analytics
+
+The registered catalogue includes revenue and monthly trends, category and product performance, profitability, discount and regional performance, customer metrics, correlations, order metrics, significant changes, segment comparisons, marketing performance, distributions, and outlier summaries. Analyses require the relevant fields to be present in the uploaded dataset.
+
+BizScopeAI reports descriptive results. A correlation or group comparison can reveal a pattern, but does not by itself establish causation or statistical significance. Row-level average profit margin and aggregate profit margin are distinct measures and should be interpreted separately.
+
+## Tech stack
+
+| Area | Technology |
+| --- | --- |
+| API | Python, FastAPI, Uvicorn |
+| Investigation workflow | LangGraph |
+| Models | Ollama with Gemma and Qwen |
+| Analytics | Pandas, NumPy |
+| Charts | Plotly |
+| Persistence | PostgreSQL, SQLAlchemy |
+| Web interface | HTML, CSS, JavaScript |
+| Tests | pytest |
+
+The primary web interface is served by FastAPI. It does not require React, Node.js, npm, or a frontend build step. A legacy Streamlit interface is also retained.
+
+## Run locally
+
+### Prerequisites
+
+- Windows PowerShell (commands below use PowerShell syntax)
 - Python 3.10 or newer
 - PostgreSQL 14 or newer, running locally
-- Ollama with `gemma3:4b` and `qwen3:4b` available
+- Ollama with `gemma3:4b` and `qwen3:4b`
 
 ### Setup
 
-1. Create and activate a virtual environment, then install dependencies:
+```powershell
+cd N:\BizScopeAI
+py -3.10 -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+Copy-Item .env.example .env
+```
 
-   ```powershell
-   py -3.10 -m venv venv
-   .\venv\Scripts\Activate.ps1
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
+Edit `.env` and set `DATABASE_URL` for your local PostgreSQL database. Keep `.env` private; it is excluded from Git. Start PostgreSQL and Ollama, then install the configured models if needed:
 
-2. Create a local PostgreSQL database and user, then copy `.env.example` to
-   `.env`. Set `DATABASE_URL` to that database. Keep `.env` private; it is
-   ignored by Git.
+```powershell
+ollama pull gemma3:4b
+ollama pull qwen3:4b
+python -m Backend.init_db
+```
 
-3. Start Ollama and ensure the configured models are installed:
+Start the application from the project root:
 
-   ```powershell
-   ollama pull gemma3:4b
-   ollama pull qwen3:4b
-   ```
+```powershell
+python -m uvicorn Backend.main:app --host 127.0.0.1 --port 8000
+```
 
-4. Create or upgrade the database tables:
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000). Keep the app bound to `127.0.0.1`; the prototype does not include authentication or multi-user access controls.
 
-   ```powershell
-   python -m Backend.init_db
-   ```
-
-5. Start the local app from the project root:
-
-   ```powershell
-   python -m uvicorn Backend.main:app --host 127.0.0.1 --port 8000
-   ```
-
-Open `http://127.0.0.1:8000/` in a browser. The single-page frontend is served
-by FastAPI and uses local JavaScript/CSS assets; no Node, npm, or globally
-installed React is required. The former Streamlit interface remains available
-as a fallback:
+### Optional Streamlit fallback
 
 ```powershell
 python -m streamlit run frontend/app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-## Operations
+## Try an investigation
 
-- `GET /health/live` checks that the API process responds.
-- `GET /health/ready` checks that PostgreSQL responds.
-- The web frontend uses `POST /chat/stream` (server-sent events) to show
-  Gemma's answer as it is generated. Analysis and hypothesis checks still run
-  first; the stream keeps the browser informed during that work. `POST /chat`
-  remains available for JSON clients such as the Streamlit fallback.
-- CSV uploads are limited by `BIZSCOPE_MAX_UPLOAD_MB` (50 MB by default).
-- Ollama calls time out after `BIZSCOPE_OLLAMA_TIMEOUT_SECONDS` (300 seconds
-  by default); connecting to the local server times out after 5 seconds.
-  Structured calls retry validation and transient service failures once, but
-  do not repeat a timed-out model call. User-facing text allows 768 output
-  tokens by default; if a stream reaches its limit or ends before Ollama's final
-  chunk, BizScopeAI requests up to two continuations and logs the completion
-  reason. Text prompts use an 8192 token context by default; tune
-  `BIZSCOPE_LLM_NUM_CTX` and these settings for the workstation's available
-  memory and model speed.
-- Uploaded datasets are stored under `BIZSCOPE_DATA_DIR` (the project
-  `uploads/` directory by default). Back up this directory with the database.
-- Each API response includes an `X-Request-ID`. Server logs include that ID,
-  route, status, and duration; they do not include chat text, CSV contents, or
-  model response text.
-- Schema changes run from ordered SQL files in `Backend/migrations/`. Applied
-  migration checksums are recorded, and editing an already-applied migration
-  stops startup; add a new migration file for later schema changes.
-- Back up and restore the database, uploaded CSV files, and Streamlit chat
-  history together. Stop both application processes first so the snapshot is
-  consistent. The archive is encrypted with Windows DPAPI for the current
-  Windows account. It can be restored only under that account on the same
-  Windows installation; keep a separate recovery plan if the workstation or
-  account is lost. Create one with:
+Upload `dataset/samplesuperstore.csv` in the app, then try this sequence:
 
-  ```powershell
-  .\venv\Scripts\python.exe -m scripts.backup_restore backup .\backups\bizscopeai.bai
-  ```
+1. “Sales are strong, but I’m not sure they’re translating into profit. Help me frame a few explanations; don’t run an analysis yet.”
+2. “Which explanation can this dataset test? Recommend the most useful first analysis, but don’t run it yet.”
+3. “Compare total revenue and total profit by region. Rank regions by total profit and show a visualization.”
+4. “Update the investigation hypotheses using those results. What does the analysis show, and what remains uncertain?”
 
-  Restore replaces the configured PostgreSQL database and requires the upload
-  and chat-history paths in `.env` to match the paths saved in the backup. Move
-  the current upload directory and chat-history file aside first, then confirm
-  the database name from `DATABASE_URL` explicitly:
+This sequence demonstrates conversational framing, evidence selection, analysis, chart rendering, and evidence-informed follow-up.
 
-  ```powershell
-  .\venv\Scripts\python.exe -m scripts.backup_restore restore .\backups\bizscopeai.bai --confirm-database bizscopeai
-  ```
+## Run tests
 
-  Replace `bizscopeai` with the actual database name. Restore refuses a nonempty
-  upload directory or an existing chat-history database to prevent overwrites.
-- The live Ollama E2E test is opt-in because it makes several slow local model
-  calls. Run it with:
+Run the automated tests with:
 
-  ```powershell
-  $env:RUN_LIVE_OLLAMA_E2E='1'
-  python -m pytest Evaluation/test_main/test_full_e2e.py -q
-  ```
+```powershell
+python -m pytest Evaluation/test_cases -q
+```
 
-## Before team or network deployment
+Database integration tests require the configured local PostgreSQL service. The live Ollama end-to-end test is opt-in because it makes slow model calls:
 
-Before allowing network or team access, add authentication and per-user or
-organization ownership to datasets and investigations, then enforce ownership
-on every API route. Also encrypt backups, monitor application and model health,
-define retention and incident procedures, and rehearse recovery on a separate
-database. Until those controls exist, keep this pilot bound to localhost and do
-not use it for shared access from a networked host.
+```powershell
+$env:RUN_LIVE_OLLAMA_E2E='1'
+python -m pytest Evaluation/test_main/test_full_e2e.py -q
+```
+
+## Repository map
+
+```text
+Backend/       API, investigation graph, prompts, analytics, persistence
+Evaluation/    Unit and integration tests plus evaluation reports
+dataset/      Sample and test CSV datasets
+frontend/     Browser UI and optional Streamlit fallback
+scripts/      Local backup and restore utility
+```
+
+## Scope and limitations
+
+BizScopeAI is a local student prototype, not a hosted business service. It currently assumes one trusted local user. It has no authentication, tenant isolation, or authorization layer for shared access. Do not expose it to a network or use it with sensitive business data. Model quality depends on the local models, available context, and dataset quality; unsupported questions should be treated as outside the current analytics catalogue.
+
+## License
+
+No license is currently specified. Contact the repository owner before reusing or redistributing the project.
