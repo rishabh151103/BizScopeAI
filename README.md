@@ -128,13 +128,15 @@ The live benchmark checks response numbers against a small dataset with known ex
 
 ### Latest recorded benchmark
 
-| Evaluation | Cases | Accuracy | Precision | Recall | F1 |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Deterministic analytics-tool selection | 17 labeled requirements | 100% | 100% macro | 100% macro | 100% macro |
-| Live response numerical facts | 1 Ollama end-to-end response; 6 expected numeric facts | 100% | 100% | 100% | 100% |
-| Live end-to-end workflow | 1 run | Passed | — | — | — |
+| Check | Result | Notes |
+| --- | ---: | --- |
+| Full pytest suite | **434 passed, 1 skipped** | 435 tests collected; the skipped test is the opt-in live Ollama test. Two dependency deprecation warnings. |
+| Live Ollama end-to-end test | **1 passed** | Separate run; uploaded a synthetic CSV, completed chat analysis, and returned a Plotly chart. |
+| Focused visualization checks | **68 passed** | Subset of automated tests; overlaps the full pytest suite. |
+| Deterministic tool-selection benchmark | **17 / 17 correct** | Accuracy 100%; macro precision, recall, and F1 each 100%. |
+| Live response numerical fact check | **6 / 6 matched** | Accuracy, precision, recall, and F1 each 100% for one response with six expected numeric facts. |
 
-The live response case uses a synthetic dataset with known monthly revenue and change values. Scores indicate that those six expected numbers appeared in the tested response without additional numeric values; they do **not** measure the quality of every explanation or establish general model accuracy. The tool-selection benchmark evaluates deterministic routing from structured requirements, not natural-language understanding or response quality. These are small, transparent checks; broader prompt and dataset coverage is needed for stronger general claims.
+The live response case uses a synthetic dataset with known monthly revenue and change values. Its scores indicate that the six expected numbers appeared in the tested response without additional numeric values; they do **not** measure the quality of every explanation or establish general model accuracy. The tool-selection benchmark evaluates deterministic routing from structured requirements, not natural-language understanding or response quality. These are small, transparent checks; broader prompt and dataset coverage is needed for stronger general claims.
 
 Reproduce the offline tool-selection benchmark with:
 
