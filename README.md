@@ -126,6 +126,24 @@ python -m pytest Evaluation/test_main/test_full_e2e.py -q -s
 
 The live benchmark checks response numbers against a small dataset with known expected results. It measures that benchmark case; it is not a general accuracy guarantee for every response.
 
+### Latest recorded benchmark
+
+| Evaluation | Cases | Accuracy | Precision | Recall | F1 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Deterministic analytics-tool selection | 17 labeled requirements | 100% | 100% macro | 100% macro | 100% macro |
+| Live response numerical facts | 1 Ollama end-to-end response; 6 expected numeric facts | 100% | 100% | 100% | 100% |
+| Live end-to-end workflow | 1 run | Passed | — | — | — |
+
+The live response case uses a synthetic dataset with known monthly revenue and change values. Scores indicate that those six expected numbers appeared in the tested response without additional numeric values; they do **not** measure the quality of every explanation or establish general model accuracy. The tool-selection benchmark evaluates deterministic routing from structured requirements, not natural-language understanding or response quality. These are small, transparent checks; broader prompt and dataset coverage is needed for stronger general claims.
+
+Reproduce the offline tool-selection benchmark with:
+
+```powershell
+python -m Evaluation.run_routing_benchmark
+```
+
+The detailed output is saved to `Evaluation/results/routing_benchmark.json`. To rerun the live response benchmark, use the opt-in end-to-end command above.
+
 ## Repository layout
 
 ```text

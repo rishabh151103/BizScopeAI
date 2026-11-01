@@ -1,11 +1,34 @@
 from fastapi.testclient import TestClient
 import os
+import re
+from decimal import Decimal, InvalidOperation
 import pytest
 
 from Backend.main import app
 
 
 client = TestClient(app)
+
+
+def score_numeric_response(response, expected_values):
+    """Score numeric fact coverage against the fixture's known monthly totals."""
+    observed = set()
+    response = re.sub(r"\b(?:19|20)\d{2}-\d{2}(?:-\d{2})?\b", " ", response)
+    for token in re.findall(r"(?<![A-Za-z])[-+]?\$?\d[\d,]*(?:\.\d+)?%?", response):
+        token = token.replace("$", "").replace(",", "").replace("%", "")
+        try:
+            value = Decimal(token)
+            if not Decimal("1900") <= value <= Decimal("2100"):
+                observed.add(value)
+        except InvalidOperation:
+            continue
+    expected = {Decimal(str(value)) for value in expected_values}
+    true_positive = len(observed & expected)
+    precision = true_positive / len(observed) if observed else 0.0
+    recall = true_positive / len(expected) if expected else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return {"accuracy": true_positive / len(expected), "precision": precision,
+            "recall": recall, "f1": f1, "observed": sorted(observed)}
 
 
 @pytest.fixture(autouse=True)
@@ -131,6 +154,16 @@ def test_full_real_e2e_business_investigation():
     assert "response" in second_data
     assert isinstance(second_data["response"], str)
     assert second_data["response"].strip()
+
+    # The request is for monthly revenue. Gold values are Jan/Feb/Mar revenue
+    # (250, 450, 650), plus the derivable monthly changes (80%, 44.4444%) and
+    # first-to-last change (160%). Profit is intentionally not required.
+    response_scores = score_numeric_response(
+        second_data["response"], [250, 450, 650, 80, 44.4444, 160]
+    )
+    print(f"[E2E] Full-response numeric fact scores: {response_scores}")
+    assert response_scores["recall"] >= 5 / 6, response_scores
+    assert response_scores["precision"] >= 0.5, response_scores
 
     # Visualization should be returned by the real V2 pathway.
     assert "visualizations" in second_data

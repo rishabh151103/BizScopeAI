@@ -1,0 +1,201 @@
+{
+  "scope": "deterministic tool routing only; not end-to-end model accuracy",
+  "cases": 17,
+  "accuracy": 1.0,
+  "macro": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0
+  },
+  "per_class": {
+    "category_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "category_revenue_trend": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "correlations": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "customer_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "customer_retention": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "customer_type": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "discount_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "distribution_statistics": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "marketing_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "monthly_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "order_metrics": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "outliers": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "product_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "profitability": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "regional_performance": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "revenue_trend": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    "significant_changes": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    }
+  },
+  "case_results": [
+    {
+      "case": "Revenue trend",
+      "expected": "revenue_trend",
+      "predicted": "revenue_trend",
+      "correct": true
+    },
+    {
+      "case": "Category revenue trend",
+      "expected": "category_revenue_trend",
+      "predicted": "category_revenue_trend",
+      "correct": true
+    },
+    {
+      "case": "Product profit",
+      "expected": "product_performance",
+      "predicted": "product_performance",
+      "correct": true
+    },
+    {
+      "case": "Regional results",
+      "expected": "regional_performance",
+      "predicted": "regional_performance",
+      "correct": true
+    },
+    {
+      "case": "Category results",
+      "expected": "category_performance",
+      "predicted": "category_performance",
+      "correct": true
+    },
+    {
+      "case": "Discount results",
+      "expected": "discount_performance",
+      "predicted": "discount_performance",
+      "correct": true
+    },
+    {
+      "case": "Monthly results",
+      "expected": "monthly_performance",
+      "predicted": "monthly_performance",
+      "correct": true
+    },
+    {
+      "case": "Customer revenue",
+      "expected": "customer_performance",
+      "predicted": "customer_performance",
+      "correct": true
+    },
+    {
+      "case": "Customer type revenue",
+      "expected": "customer_type",
+      "predicted": "customer_type",
+      "correct": true
+    },
+    {
+      "case": "Customer retention",
+      "expected": "customer_retention",
+      "predicted": "customer_retention",
+      "correct": true
+    },
+    {
+      "case": "Overall profitability",
+      "expected": "profitability",
+      "predicted": "profitability",
+      "correct": true
+    },
+    {
+      "case": "Correlation",
+      "expected": "correlations",
+      "predicted": "correlations",
+      "correct": true
+    },
+    {
+      "case": "Largest revenue drop",
+      "expected": "significant_changes",
+      "predicted": "significant_changes",
+      "correct": true
+    },
+    {
+      "case": "Order value",
+      "expected": "order_metrics",
+      "predicted": "order_metrics",
+      "correct": true
+    },
+    {
+      "case": "Marketing efficiency",
+      "expected": "marketing_performance",
+      "predicted": "marketing_performance",
+      "correct": true
+    },
+    {
+      "case": "Distribution",
+      "expected": "distribution_statistics",
+      "predicted": "distribution_statistics",
+      "correct": true
+    },
+    {
+      "case": "Outlier detection",
+      "expected": "outliers",
+      "predicted": "outliers",
+      "correct": true
+    }
+  ]
+}
