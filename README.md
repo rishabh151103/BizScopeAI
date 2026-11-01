@@ -1,73 +1,76 @@
+<div align="center">
+
 # BizScopeAI
 
-### A conversational business analyst that investigates data with evidence.
+### Business questions, investigated with evidence.
 
-BizScopeAI helps users explore business questions through a guided investigation. It frames possible explanations, decides when new numerical evidence is needed, runs registered analytics, and uses the results to inform the conversation. Visualizations are generated from the same analysis results shown in the response.
+**A conversational analytics workspace for exploring business performance, testing explanations, and turning verified data into clear next steps.**
 
-> **Deployment:** Local, single-user prototype. Network and public deployment are outside the current scope.
+[Capabilities](#capabilities) · [How it works](#how-it-works) · [Run locally](#run-locally) · [Evaluation](#evaluation)
 
-## What it does
+</div>
 
-- **Investigates conversationally:** Ask an open-ended business question and explore plausible hypotheses before running calculations.
-- **Chooses when evidence is needed:** Follow-up questions can use saved evidence; new analytical requests are routed to an available analysis.
-- **Keeps arithmetic reproducible:** Python analytics calculate metrics, rankings, and comparisons. The language models explain the results rather than serve as the source of numerical truth.
-- **Updates the investigation:** New results can inform hypothesis status and the next useful question.
-- **Shows relevant charts:** Plotly charts are generated from analysis outputs and rendered in the browser interface.
-- **Works with uploaded CSVs:** The data pipeline profiles datasets and maps common business fields to supported analyses.
+---
+
+## Overview
+
+BizScopeAI is a local business analysis application built around an investigation loop. Start with a broad question, develop possible explanations, identify what the data can test, and use new findings to guide the next question.
+
+The language models support the conversation and structure analytical requests. **Registered Python analytics calculate the reported metrics.** Tables and Plotly charts are grounded in those same results.
+
+## Capabilities
+
+| Explore | Measure | Investigate |
+| --- | --- | --- |
+| Frame a business question and compare plausible hypotheses | Analyze revenue, profit, margins, regions, products, categories, customers, discounts, and trends | Reuse saved evidence, update hypothesis status, and identify what remains unknown |
+| Continue with natural-language follow-ups | Calculate rankings and comparisons with reproducible Python functions | Render charts from the measured analysis results |
+
+CSV uploads are profiled and mapped to supported business fields. Available analyses depend on the columns in the uploaded data.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    U[Business question] --> G[Gemma conversation and investigation]
-    G --> D{Is new evidence needed?}
-    D -->|No| C[Use saved evidence and context]
-    D -->|Yes| Q[Qwen structures analysis request]
-    Q --> P[Registered Python analytics]
-    P --> S[Persist result and update hypotheses]
-    C --> R[Grounded response]
-    S --> R
-    P --> V[Relevant Plotly visualization]
-    V --> UI[Browser interface]
-    R --> UI
+    A[Business question] --> B[Conversation and investigation]
+    B --> C{New evidence needed?}
+    C -->|No| D[Reuse saved evidence]
+    C -->|Yes| E[Structure the analysis request]
+    E --> F[Registered Python analytics]
+    F --> G[Persist results and update hypotheses]
+    D --> H[Evidence-grounded response]
+    G --> H
+    F --> I[Relevant Plotly chart]
+    H --> J[Web workspace]
+    I --> J
 ```
 
-Gemma (`gemma3:4b`) handles conversational investigation and interpretation. Qwen (`qwen3:4b`) helps structure requests when new evidence is required. Registered Python functions produce the measured results; the models do not calculate the reported figures.
+**Gemma** (`gemma3:4b`) supports investigation and response generation. **Qwen** (`qwen3:4b`) structures requests when new evidence is needed. Python analytics remain the source of numerical results.
 
-## Analytics
+## Analytics and interpretation
 
-The registered catalogue includes revenue and monthly trends, category and product performance, profitability, discount and regional performance, customer metrics, correlations, order metrics, significant changes, segment comparisons, marketing performance, distributions, and outlier summaries. Analyses require the relevant fields to be present in the uploaded dataset.
+The catalogue covers business performance, regional and category comparisons, monthly trends, product and customer metrics, discount performance, correlations, order metrics, marketing efficiency, distribution statistics, and outlier summaries.
 
-BizScopeAI reports descriptive results. A correlation or group comparison can reveal a pattern, but does not by itself establish causation or statistical significance. Row-level average profit margin and aggregate profit margin are distinct measures and should be interpreted separately.
+Results are descriptive. A difference or correlation can suggest a pattern, but does not establish its cause or statistical significance. BizScopeAI distinguishes row-level average profit margin from aggregate profit margin; each answers a different question.
 
-## Tech stack
+## Technology
 
-| Area | Technology |
-| --- | --- |
-| API | Python, FastAPI, Uvicorn |
-| Investigation workflow | LangGraph |
-| Models | Ollama with Gemma and Qwen |
-| Analytics | Pandas, NumPy |
-| Charts | Plotly |
-| Persistence | PostgreSQL, SQLAlchemy |
-| Web interface | HTML, CSS, JavaScript |
-| Tests | pytest |
+**Python · FastAPI · LangGraph · Ollama · Pandas · NumPy · Plotly · PostgreSQL · SQLAlchemy · HTML · CSS · JavaScript · pytest**
 
-The primary web interface is served by FastAPI. It does not require React, Node.js, npm, or a frontend build step. A legacy Streamlit interface is also retained.
+The primary browser interface is served directly by FastAPI. It uses native web technologies and does not require a Node.js or npm build. A Streamlit interface is retained as an alternate client.
 
 ## Run locally
 
-### Prerequisites
+### Requirements
 
-- Windows PowerShell (commands below use PowerShell syntax)
 - Python 3.10 or newer
-- PostgreSQL 14 or newer, running locally
+- PostgreSQL 14 or newer
 - Ollama with `gemma3:4b` and `qwen3:4b`
 
-### Setup
+### Install
+
+From the repository root in PowerShell:
 
 ```powershell
-cd N:\BizScopeAI
 py -3.10 -m venv venv
 .\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -75,7 +78,7 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
-Edit `.env` and set `DATABASE_URL` for your local PostgreSQL database. Keep `.env` private; it is excluded from Git. Start PostgreSQL and Ollama, then install the configured models if needed:
+Set `DATABASE_URL` in `.env` for your local PostgreSQL database. Keep `.env` private; it is excluded from Git. Start PostgreSQL and Ollama, then prepare the database and local models:
 
 ```powershell
 ollama pull gemma3:4b
@@ -83,60 +86,60 @@ ollama pull qwen3:4b
 python -m Backend.init_db
 ```
 
-Start the application from the project root:
+### Start
 
 ```powershell
 python -m uvicorn Backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000). Keep the app bound to `127.0.0.1`; the prototype does not include authentication or multi-user access controls.
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000). The application is configured for local access on `127.0.0.1`.
 
-### Optional Streamlit fallback
+### Optional Streamlit client
 
 ```powershell
 python -m streamlit run frontend/app.py --server.address 127.0.0.1 --server.port 8501
 ```
 
-## Try an investigation
+## Example investigation
 
-Upload `dataset/samplesuperstore.csv` in the app, then try this sequence:
+Upload `dataset/samplesuperstore.csv`, then explore:
 
-1. “Sales are strong, but I’m not sure they’re translating into profit. Help me frame a few explanations; don’t run an analysis yet.”
-2. “Which explanation can this dataset test? Recommend the most useful first analysis, but don’t run it yet.”
-3. “Compare total revenue and total profit by region. Rank regions by total profit and show a visualization.”
-4. “Update the investigation hypotheses using those results. What does the analysis show, and what remains uncertain?”
+1. “Sales are strong, but I’m not sure they’re translating into profit. Help me frame possible explanations; don’t analyze yet.”
+2. “Which explanation can this dataset test? Recommend a useful first analysis, but don’t run it yet.”
+3. “Compare revenue and profit by region. Rank regions by profit and visualize the results.”
+4. “Update the hypotheses using the results. What do we know, and what remains uncertain?”
 
-This sequence demonstrates conversational framing, evidence selection, analysis, chart rendering, and evidence-informed follow-up.
+## Evaluation
 
-## Run tests
-
-Run the automated tests with:
+Run the automated test suite:
 
 ```powershell
 python -m pytest Evaluation/test_cases -q
 ```
 
-Database integration tests require the configured local PostgreSQL service. The live Ollama end-to-end test is opt-in because it makes slow model calls:
+Database integration tests require the configured PostgreSQL service. The live end-to-end test uses local Ollama models and is opt-in:
 
 ```powershell
 $env:RUN_LIVE_OLLAMA_E2E='1'
-python -m pytest Evaluation/test_main/test_full_e2e.py -q
+python -m pytest Evaluation/test_main/test_full_e2e.py -q -s
 ```
 
-## Repository map
+The live benchmark checks response numbers against a small dataset with known expected results. It measures that benchmark case; it is not a general accuracy guarantee for every response.
+
+## Repository layout
 
 ```text
-Backend/       API, investigation graph, prompts, analytics, persistence
-Evaluation/    Unit and integration tests plus evaluation reports
-dataset/      Sample and test CSV datasets
-frontend/     Browser UI and optional Streamlit fallback
-scripts/      Local backup and restore utility
+Backend/       API, investigation workflow, analytics, persistence
+Evaluation/    Automated tests and evaluation tools
+dataset/       Sample and test datasets
+frontend/      Browser interface and alternate Streamlit client
+scripts/       Local backup and restore utilities
 ```
 
-## Scope and limitations
+## Deployment and data
 
-BizScopeAI is a local, single-user prototype, not a hosted business service. It has no authentication, tenant isolation, or authorization layer for shared access. Do not expose it to a network or use it with sensitive business data. Model quality depends on the local models, available context, and dataset quality; unsupported questions should be treated as outside the current analytics catalogue.
+BizScopeAI is designed for one local user. It does not currently provide authentication or multi-user data isolation. Keep it bound to localhost and do not expose it to a network or use it with sensitive business data.
 
 ## License
 
-No license is currently specified. Contact the repository owner before reusing or redistributing the project.
+No license is currently specified. Contact the repository owner before reuse or redistribution.
