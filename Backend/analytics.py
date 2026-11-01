@@ -135,6 +135,59 @@ def analyze_revenue_trend(df):
 
 
 
+
+def analyze_category_revenue_trend(df):
+    """Calculate monthly revenue per category and month-over-month changes."""
+    validate_dataframe(df)
+    require_columns(df, ["date", "category", "revenue"])
+
+    data = df.copy()
+    data["date"] = pd.to_datetime(data["date"], errors="coerce")
+    data["revenue"] = pd.to_numeric(data["revenue"], errors="coerce")
+    data = data.dropna(subset=["date", "category", "revenue"])
+    if data.empty:
+        raise ValueError("No valid rows remain for category revenue trend analysis.")
+
+    data["month"] = data["date"].dt.to_period("M").astype(str)
+    monthly = (
+        data.groupby(["month", "category"], as_index=False, dropna=False)["revenue"]
+        .sum()
+        .sort_values(["category", "month"])
+        .reset_index(drop=True)
+    )
+    grouped = monthly.groupby("category")["revenue"]
+    monthly["revenue_change"] = grouped.diff()
+    previous = grouped.shift(1)
+    monthly["percentage_change"] = np.where(
+        previous.notna() & previous.ne(0),
+        (monthly["revenue"] - previous) / previous * 100,
+        np.nan,
+    )
+
+    summary = (
+        monthly.groupby("category", as_index=False)
+        .agg(
+            first_month_revenue=("revenue", "first"),
+            latest_month_revenue=("revenue", "last"),
+            total_revenue=("revenue", "sum"),
+            month_count=("month", "nunique"),
+        )
+    )
+    summary["change_from_first_to_last"] = (
+        summary["latest_month_revenue"] - summary["first_month_revenue"]
+    )
+    summary["change_from_first_to_last_percent"] = np.where(
+        summary["first_month_revenue"].ne(0),
+        summary["change_from_first_to_last"] / summary["first_month_revenue"] * 100,
+        np.nan,
+    )
+    return {
+        "category_monthly_revenue": monthly,
+        "category_summary": summary,
+    }
+
+
+
 def analyze_product_performance(df):
 
     product_analysis=(
@@ -325,6 +378,12 @@ def analyze_category_performance(df):
         .reset_index()
     )
 
+    category_analysis["aggregate_profit_margin"] = (
+        100
+        * category_analysis["total_profit"]
+        / category_analysis["total_revenue"].replace(0, float("nan"))
+    )
+
     category_analysis["revenue_share_percent"] = (
         category_analysis["total_revenue"]
         / category_analysis["total_revenue"].sum()
@@ -335,29 +394,92 @@ def analyze_category_performance(df):
             "category_analysis": category_analysis,
             "highest_revenue_category": None,
             "highest_profit_category": None,
-            "highest_margin_category": None
+            "highest_margin_category": None,
+            "highest_average_profit_margin_category": None,
+            "highest_aggregate_profit_margin_category": None,
         }
 
-    highest_revenue_category = category_analysis.loc[
-        category_analysis["total_revenue"].idxmax()
-    ]
+    def category_with_maximum(metric):
+        usable = category_analysis[metric].dropna()
+        if usable.empty:
+            return None
+        return category_analysis.loc[usable.idxmax(), "category"]
 
-    highest_profit_category = category_analysis.loc[
-        category_analysis["total_profit"].idxmax()
-    ]
-
-    highest_margin_category = category_analysis.loc[
-        category_analysis["average_profit_margin"].idxmax()
-    ]
+    highest_revenue_category = category_with_maximum("total_revenue")
+    highest_profit_category = category_with_maximum("total_profit")
+    highest_average_margin_category = category_with_maximum(
+        "average_profit_margin"
+    )
+    highest_aggregate_margin_category = category_with_maximum(
+        "aggregate_profit_margin"
+    )
 
     return {
         "category_analysis": category_analysis,
-        "highest_revenue_category": highest_revenue_category["category"],
-        "highest_profit_category": highest_profit_category["category"],
-        "highest_margin_category": highest_margin_category["category"]
+        "highest_revenue_category": highest_revenue_category,
+        "highest_profit_category": highest_profit_category,
+        # Legacy field retains its former average-margin meaning.
+        "highest_margin_category": highest_average_margin_category,
+        "highest_average_profit_margin_category": highest_average_margin_category,
+        "highest_aggregate_profit_margin_category": highest_aggregate_margin_category,
     }
 
 
+def analyze_discount_performance(df, category_filter=None):
+    """Compare profit outcomes across observed discount levels and categories."""
+    validate_dataframe(df)
+    require_columns(df, ["category", "discount", "revenue", "profit"])
+
+    data = df.copy()
+    if category_filter:
+        matches = data["category"].astype(str).str.casefold() == str(category_filter).casefold()
+        if not matches.any():
+            raise ValueError(
+                f"Category '{category_filter}' is not present in the dataset."
+            )
+        data = data.loc[matches].copy()
+    data["discount"] = pd.to_numeric(data["discount"], errors="coerce")
+    data["revenue"] = pd.to_numeric(data["revenue"], errors="coerce")
+    data["profit"] = pd.to_numeric(data["profit"], errors="coerce")
+    data = data.dropna(subset=["category", "discount", "revenue", "profit"])
+
+    if data.empty:
+        raise ValueError(
+            "The dataset has no usable category, discount, revenue, and profit rows."
+        )
+
+    aggregations = {
+        "total_revenue": ("revenue", "sum"),
+        "total_profit": ("profit", "sum"),
+        "transaction_count": ("profit", "size"),
+    }
+    if "units" in data.columns:
+        data["units"] = pd.to_numeric(data["units"], errors="coerce")
+        aggregations["units_sold"] = ("units", "sum")
+    if "profit_margin_percent" in data.columns:
+        data["profit_margin_percent"] = pd.to_numeric(
+            data["profit_margin_percent"], errors="coerce"
+        )
+        aggregations["average_profit_margin"] = (
+            "profit_margin_percent", "mean"
+        )
+
+    discount_analysis = (
+        data.groupby(["category", "discount"], dropna=False)
+        .agg(**aggregations)
+        .reset_index()
+        .rename(columns={"discount": "discount_level"})
+    )
+    discount_analysis["aggregate_profit_margin"] = (
+        100
+        * discount_analysis["total_profit"]
+        / discount_analysis["total_revenue"].replace(0, float("nan"))
+    )
+    return {
+        "discount_analysis": discount_analysis,
+        "category_filter": category_filter,
+        "discount_source_values": "Values use the source dataset's discount scale.",
+    }
 
 def analyze_monthly_performance(df):
 

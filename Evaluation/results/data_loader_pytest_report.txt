@@ -1,0 +1,15 @@
+BizScopeAI — Data Loader Evaluation
+
+Data-loader tests:
+- 43 passed
+- 0 failed
+- 0 errors
+
+Full evaluation suite:
+- 203 passed
+- 0 failed
+- 0 errors
+- 4.49s
+
+The full-suite result was recorded from the completed pytest run.
+The dirty Superstore integration test passed as part of the 203-test run.

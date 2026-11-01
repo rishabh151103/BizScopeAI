@@ -1,0 +1,2 @@
+ALTER TABLE hypotheses
+ADD COLUMN IF NOT EXISTS priority VARCHAR(20) NOT NULL DEFAULT 'medium';

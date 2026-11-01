@@ -1,0 +1,17 @@
+# Runtime dependencies; developed and tested with Python 3.10.
+fastapi==0.141.1
+langgraph==0.6.11
+numpy==2.2.6
+pandas==2.3.3
+plotly==7.1.0
+psycopg[binary]==3.3.6
+pydantic==2.13.5
+python-dotenv==1.2.3
+python-multipart==0.0.32
+requests==2.34.2
+sqlalchemy==2.0.54
+streamlit==1.64.0
+uvicorn[standard]==0.53.0
+
+# Test dependencies
+pytest==9.1.1

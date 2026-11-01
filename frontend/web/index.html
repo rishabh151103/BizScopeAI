@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101312" />
+    <meta name="description" content="A thoughtful AI partner for business investigation." />
+    <title>BizScopeAI — Business intelligence, in conversation</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/css/styles.css" />
+    <script defer src="/vendor/plotly.min.js"></script>
+    <script defer type="module" src="/assets/js/app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell" id="app">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="brand-copy"><strong>BizScope<span>AI</span></strong><small>Business intelligence</small></div>
+          <button class="icon-button mobile-only" id="close-sidebar" aria-label="Close navigation">×</button>
+        </div>
+
+        <button class="new-chat-button" id="new-chat"><span class="plus">＋</span> New investigation <kbd>Ctrl K</kbd></button>
+
+        <div class="sidebar-section-head">
+          <span>Recent investigations</span>
+          <button class="icon-button small" id="refresh-conversations" title="Refresh conversations" aria-label="Refresh conversations">↻</button>
+        </div>
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="conversation-search" type="search" placeholder="Search conversations" autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+        <nav class="conversation-list" id="conversation-list" aria-label="Recent investigations"></nav>
+
+        <div class="sidebar-spacer"></div>
+        <section class="dataset-card" id="dataset-card">
+          <div class="dataset-icon" aria-hidden="true">▦</div>
+          <div class="dataset-copy">
+            <strong id="dataset-name">No dataset selected</strong>
+            <span id="dataset-meta">Upload a CSV to get started</span>
+          </div>
+        </section>
+        <div class="sidebar-bottom">
+          <button class="sidebar-action" id="upload-dataset"><span aria-hidden="true">＋</span> Add dataset</button>
+          <div class="connection-status"><i id="connection-dot"></i><span id="connection-label">Checking local engine…</span></div>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button mobile-only" id="open-sidebar" aria-label="Open navigation">☰</button>
+            <div class="breadcrumb"><span>Workspace</span><span class="crumb-separator">/</span><strong id="topbar-title">New investigation</strong></div>
+          </div>
+          <div class="topbar-actions">
+            <span class="local-badge"><i></i> Private · runs locally</span>
+            <button class="icon-button" id="rename-conversation" title="Rename investigation" aria-label="Rename investigation">✎</button>
+            <button class="icon-button danger-hover" id="delete-conversation" title="Delete investigation" aria-label="Delete investigation">⌫</button>
+          </div>
+        </header>
+
+        <section class="thread-scroll" id="thread-scroll" aria-live="polite">
+          <div class="welcome" id="welcome">
+            <div class="welcome-eyebrow"><span class="sparkle">✳</span> A clearer view of your business</div>
+            <h1>Good decisions start<br /><em>with better questions.</em></h1>
+            <p>Bring a business question, a dataset, or both. We’ll investigate the evidence with you and keep the conversation connected.</p>
+            <div class="suggestion-grid">
+              <button class="suggestion-card" data-prompt="What are the most important patterns in my business data?">
+                <span class="suggestion-icon mint">⌁</span><span><strong>Find the signal</strong><small>What patterns deserve my attention?</small></span><b>↗</b>
+              </button>
+              <button class="suggestion-card" data-prompt="Which parts of the business contribute most to profit, and what should I look at next?">
+                <span class="suggestion-icon blue">◫</span><span><strong>Understand performance</strong><small>Where is profit really coming from?</small></span><b>↗</b>
+              </button>
+              <button class="suggestion-card" data-prompt="I have a business concern I want to think through. Help me frame the problem and identify what we know.">
+                <span class="suggestion-icon gold">✳</span><span><strong>Think through a problem</strong><small>Start with a question, not a report.</small></span><b>↗</b>
+              </button>
+            </div>
+            <div class="welcome-footnote"><span class="sparkle">✳</span> Grounded in your data. Curious about the why.</div>
+          </div>
+          <div class="message-thread" id="message-thread"></div>
+          <div class="typing-row hidden" id="typing-row"><div class="assistant-avatar">B</div><div class="typing-content"><span class="typing-title">Working through your question</span><span class="typing-dots"><i></i><i></i><i></i></span></div></div>
+        </section>
+
+        <footer class="composer-zone">
+          <div class="edit-branch-banner hidden" id="edit-branch-banner">
+            <span>Editing a message creates a new branch; the original conversation stays intact.</span>
+            <button class="text-button" id="cancel-edit">Cancel</button>
+          </div>
+          <div class="composer" id="composer">
+            <textarea id="message-input" rows="1" placeholder="Ask a business question…" aria-label="Message BizScopeAI"></textarea>
+            <div class="composer-bottom">
+              <div class="composer-tools">
+                <button class="composer-tool" id="composer-upload"><span>＋</span> Dataset</button>
+                <span class="composer-divider"></span>
+                <span class="composer-hint" id="composer-hint">Ask, explore, follow the evidence</span>
+              </div>
+              <button class="send-button" id="send-message" aria-label="Send message"><span>↑</span></button>
+            </div>
+          </div>
+          <p class="composer-disclaimer">BizScopeAI can make mistakes. Check important findings against your source data.</p>
+        </footer>
+      </main>
+    </div>
+
+    <input id="file-input" type="file" accept=".csv,text/csv" hidden />
+    <div class="toast-region" id="toast-region" aria-live="assertive"></div>
+
+    <dialog class="app-dialog" id="confirm-dialog">
+      <form method="dialog" class="dialog-card">
+        <div class="dialog-icon" id="dialog-icon">!</div>
+        <h2 id="dialog-title">Confirm action</h2>
+        <p id="dialog-description"></p>
+        <div class="dialog-actions"><button class="secondary-button" value="cancel">Cancel</button><button class="primary-button" id="dialog-confirm" value="confirm">Continue</button></div>
+      </form>
+    </dialog>
+  </body>
+</html>
