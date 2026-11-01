@@ -2,6 +2,12 @@ venv/
 __pycache__/
 .pytest_cache/
 *.pyc
-.env
+.env*
+!.env.example
+.coverage
+htmlcov/
+*.log
+backups/
 dataset/uploads/
 frontend/bizscope_chat_history.sqlite3
+frontend/bizscope_chat_history.sqlite3-*

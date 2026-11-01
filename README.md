@@ -4,7 +4,7 @@
 
 BizScopeAI helps users explore business questions through a guided investigation. It frames possible explanations, decides when new numerical evidence is needed, runs registered analytics, and uses the results to inform the conversation. Visualizations are generated from the same analysis results shown in the response.
 
-> **Project status:** Local, single-user student project prototype. Not intended for public or shared network deployment.
+> **Deployment:** Local, single-user prototype. Network and public deployment are outside the current scope.
 
 ## What it does
 
@@ -135,7 +135,7 @@ scripts/      Local backup and restore utility
 
 ## Scope and limitations
 
-BizScopeAI is a local student prototype, not a hosted business service. It currently assumes one trusted local user. It has no authentication, tenant isolation, or authorization layer for shared access. Do not expose it to a network or use it with sensitive business data. Model quality depends on the local models, available context, and dataset quality; unsupported questions should be treated as outside the current analytics catalogue.
+BizScopeAI is a local, single-user prototype, not a hosted business service. It has no authentication, tenant isolation, or authorization layer for shared access. Do not expose it to a network or use it with sensitive business data. Model quality depends on the local models, available context, and dataset quality; unsupported questions should be treated as outside the current analytics catalogue.
 
 ## License
 
